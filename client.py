@@ -1,5 +1,6 @@
 #CONSTANTES
 MENU_PRINCIPAL_DIRECTORY="MENU PRINCIPAL"
+PLAT_DIRECTORY="plat.txt"
 
 #FONCTION
 import os
@@ -43,8 +44,7 @@ def saisir_entier(min,max,expression="Faite un choix\n"):
     else:
         print("Votre saisie doit etre un entier")
         return saisir_entier(min,max,expression)
-
-    if(choix>=min and choix<=max):
+    if(min==max and min<choix) or ((choix>=min and choix<=max)):
         return choix
     else:
         print("Votre saisie n'est pas valide")
@@ -163,8 +163,17 @@ def render_view(view):
             return keys,menu_reel_a_afficher[keys]
 
 def details(PlatName:str)->str:
-    
-    with open()
+    with open(PLAT_DIRECTORY,"r",encoding="utf-8") as f :
+        different_plat=f.read().split("\n\n")
+        for plat in different_plat:
+
+            plat=plat.split("\n",1)
+            nom_du_plat=plat[0].split(":")
+            nom_du_plat=nom_du_plat[1].strip()
+
+            if(nom_du_plat==PlatName):
+                return plat[1]
+        return "PAS DE DETAILS RENSEIGNER POUR CE PLAT"
 
 def MenuPrincipal():
 
@@ -219,9 +228,25 @@ while True:
     else:
         if(yesNoQuestion("Voulez-vous voir les details")):
             details(PlatName)
-        
+            if(not yesNoQuestion("Voulez-vous commander ?")):
+                continue
 
-        commandes.append()
+        qte_voulue=saisir_entier("entrer le nombre de plat",1,1)
+
+        if(qte_voulue>info["qte"]):
+            print("la quantité demandé est superieur au nombre de plat dispo coreespondent à",info["qte"])
+            if(yesNoQuestion("Vouliez vous changer la qantite voulue")):
+                qte_voulue=saisir_entier("entrer une nouvelle quantite",1,info["qte"])
+        
+        if(not yesNoQuestion("voulez vous un autre",view)):
+            view=None
+        
+        if(qte_voulue<=info["qte"]):
+            commande={"nom":PlatName,"qte":qte_voulue,"prix":info["prix"]}
+            commandes.append(commande)
+
+if(commandes!=[]):
+    
 
 
 
