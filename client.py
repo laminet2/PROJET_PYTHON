@@ -1,6 +1,8 @@
 #CONSTANTES
 MENU_PRINCIPAL_DIRECTORY="MENU PRINCIPAL"
 PLAT_DIRECTORY="plat.txt"
+VENTES_DIRECTORY="ventes.txt"
+DEVISE="FCFA"
 
 #FONCTION
 import os
@@ -8,6 +10,7 @@ from genericpath import exists
 from time import sleep
 import sys
 from pprint import pprint
+from datetime import datetime
 
 #Variable globales 
 commandes=[]
@@ -126,6 +129,7 @@ def render_view(view):
             if(qte=='0'):
                 continue
             else:
+
                 #CREATION D'UNE STRUCTURE DE DONNE COMPLEXE EMPECHANT
                 #L'AFFICHAGE DE DEUX PLAT AYANT DES NOMS IDENTIQUES
                 #EN EFFET ELLE SERA SOUS CETTE FORME 
@@ -143,7 +147,7 @@ def render_view(view):
     i=1   
     for nom in menu_reel_a_afficher:
             prix=menu_reel_a_afficher[nom]["prix"]
-            print(f"{i}{nom.upper():.>40} {prix} FCFA ")
+            print(f"{i}{nom.upper():.>40} {prix} {DEVISE} ")
             i+=1
 
     print(f"{i}{'Retourner':.>50}")
@@ -160,7 +164,7 @@ def render_view(view):
         # de la clé du choix effectuable par enumerate()
     for indice,keys in enumerate(menu_reel_a_afficher):
         if(indice+1 ==choix):
-            return keys,menu_reel_a_afficher[keys]
+            return keys,menu_reel_a_afficher[keys],view
 
 def details(PlatName:str)->str:
     with open(PLAT_DIRECTORY,"r",encoding="utf-8") as f :
@@ -214,6 +218,112 @@ def MenuPrincipal():
             return value
 
 
+def generation_ticket(commandes):
+
+    #Entete
+    entete=" RESTO DIMENSION ALLOCO "
+
+    #Name fichier ticket
+    datenow=datetime.now()
+    dateticket=datenow.strftime("%d%m%Y%H%M%S")
+    fileticket="ticket/"+dateticket+"txt"
+
+    #reference bas de page
+    dateBas_de_page=datenow.strftime("%d/%m/%Y à %H:%M")
+    bas_de_page="\nImprimé le "+dateBas_de_page+"       "+" merci"
+
+    #Corp du ticket
+    ecriture=""
+    somme=0
+    with open(fileticket,"r",encoding="utf-8") as f:
+        for commande in commandes:
+            ecriture=ecriture + commande["nom"] + '(' + commande["qte"] + ')' +"   "+ commande["prix"]*commande["qte"] +"\n"
+            somme+=commande['prix']*commande["qte"]
+
+        ecriture+=f"TOTAL:   {somme}"
+        f.write(entete)
+        f.write(ecriture)
+        f.write(bas_de_page)
+
+
+def uptade_file_vente(commandes):
+
+    ecriture=""
+    with open(VENTES_DIRECTORY,"a") as f:
+        for commande in commandes:
+            ecriture=ecriture+commande["nom"]+";"+commande["qte"]+";"+commande["prix"]+"\n"
+        f.write(ecriture)
+
+def soustraction_qte(commandes):
+
+    with open(MENU_PRINCIPAL_DIRECTORY,'r',encoding="utf-8") as f:
+        views=f.read().splitlines()
+
+    for view in views:
+
+        view=view.lower().replace(" ","_")
+        view=view+"txt"
+        new_menu=[]
+
+
+        with open(view,"r") as f:
+                different_plat=f.read().split("\n")
+                for plat_with_deux_point in different_plat():
+                    plat=plat_with_deux_point.split(":")
+                    for i in range(len(commandes)-1):
+
+                        if(plat[0].strip()==commandes[i]["nom"]):
+                            newQte=int(plat[3])-int(commandes[i]["qte"])
+                            plat_with_deux_point=f"{plat[0]}:{plat[1]}:{newQte}"
+                            break
+
+                    new_menu.append(plat_with_deux_point)
+
+        with open(view,"w",encoding="utf-8") as f:
+            f.write(new_menu)
+                    
+#Fonction caisse
+
+def listerVentes():
+    with open(VENTES_DIRECTORY,"r",encoding="utf-8") as f:
+       line=f.readline()
+       while line:
+        print(line)
+        line=f.readlines()   
+
+def MontantVentes():
+    somm=0
+    with open(VENTES_DIRECTORY) as f:
+        ventes=f.read().splitlines()
+        for vente in ventes:
+            vente=vente.split(";")
+            somm+=int(vente[2].strip())*int(vente[1].strip())
+    print(f"la sommes des Ventes d'aujourd'hui vaut {somm}")
+
+#Programme PRINCIPAL caisse
+while True:
+    print("-"*50)
+    entete="menu caise"
+    print(f"{entete: .^50}")
+    i=1
+    action=["Lister la liste des ventes","le montant total des ventes"]
+    for poss in action:
+        print(f"{i} {poss}")
+    choix=saisir_entier(1,i+1,"Faite un choix")
+    if(choix>len(action)):
+        break
+    else:
+
+        if(action[choix]=="Lister la liste des ventes"):
+            listerVentes()
+        elif(action[choix]=="Le montant total des ventes"):
+            MontantVentes()
+
+    if(not yesNoQuestion("Voulez vous retourner au menu Principal ?")):
+        break
+
+
+#Programme principal client
 view=None
 while True:
 
@@ -246,6 +356,10 @@ while True:
             commandes.append(commande)
 
 if(commandes!=[]):
+
+    generation_ticket(commandes)
+    uptade_file_vente(commandes)
+    soustraction_qte(commandes)
     
 
 
@@ -260,9 +374,3 @@ if(commandes!=[]):
 #     pass
 # else:
 #     menu_afficher=menus[choix_utilisateur-1]
-
-
-
-
-
-
