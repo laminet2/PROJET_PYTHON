@@ -1,58 +1,12 @@
-#CONSTANTES
-MENU_PRINCIPAL_DIRECTORY="MENU PRINCIPAL"
-PLAT_DIRECTORY="plat.txt"
-VENTES_DIRECTORY="ventes.txt"
-DEVISE="FCFA"
 
 #FONCTION
-import os
 from genericpath import exists
 from time import sleep
-import sys
-from pprint import pprint
 from datetime import datetime
 
+import constante as cst
+import function as fct
 #Variable globales 
-commandes=[]
-
-def yesNoQuestion(question:str)->bool :
-    rep=input(f"{question} ? [Oui /Non] \n")
-    while(rep.lower() not in('oui','non')):
-        rep=input(f"Votre choix est incomprehensible,refaite une nouvelle saisie\n")
-    return rep=="oui"
-        
-
-def effacer_ecran():
-
-    """
-        cette fonction permet d'effacer l'écran
-    """
-    if os.name=='posix':
-        os.system('clear')
-    else:
-        os.system('cls')
-
-
-def creerFichier(nomFichier,ext="txt"):
-    fichier=f"{nomFichier}.{ext}"
-    if(not exists(fichier)):
-        f=open(fichier,"w")
-        f.close()
-
-def saisir_entier(min,max,expression="Faite un choix\n"):
-
-    choix=input(expression)
-    if choix.isdigit()==True:
-        choix=int(choix)
-    else:
-        print("Votre saisie doit etre un entier")
-        return saisir_entier(min,max,expression)
-    if(min==max and min<choix) or ((choix>=min and choix<=max)):
-        return choix
-    else:
-        print("Votre saisie n'est pas valide")
-        return saisir_entier(min,max,expression)
-
 
 #PROGRAMME PRINCIPAL
 
@@ -82,12 +36,12 @@ def render_view(view):
     """
     
     if view==0:
-        return 0,0
+        return 0,0,0
 
     menu_afficher=find_all_data(view)
 
     #AFFICHAGE EN TETE
-    effacer_ecran()
+    fct.effacer_ecran()
     print('*'*50)
     print(f"{view.upper(): ^50}")
     print('*'*50)
@@ -147,7 +101,7 @@ def render_view(view):
     i=1   
     for nom in menu_reel_a_afficher:
             prix=menu_reel_a_afficher[nom]["prix"]
-            print(f"{i}{nom.upper():.>40} {prix} {DEVISE} ")
+            print(f"{i}{nom.upper():.>40} {prix} {cst.DEVISE} ")
             i+=1
 
     print(f"{i}{'Retourner':.>50}")
@@ -156,7 +110,7 @@ def render_view(view):
 
     #partie choix et traitement du choix
 
-    choix=saisir_entier(1,i,"Faites votre choix :\n")
+    choix=fct.saisir_entier(1,i,"Faites votre choix :\n")
     if i==choix:
         return render_view(MenuPrincipal())
 
@@ -167,7 +121,8 @@ def render_view(view):
             return keys,menu_reel_a_afficher[keys],view
 
 def details(PlatName:str)->str:
-    with open(PLAT_DIRECTORY,"r",encoding="utf-8") as f :
+    fct.effacer_ecran()
+    with open(cst.PLAT_DIRECTORY,"r",encoding="utf-8") as f :
         different_plat=f.read().split("\n\n")
         for plat in different_plat:
 
@@ -175,17 +130,17 @@ def details(PlatName:str)->str:
             nom_du_plat=plat[0].split(":")
             nom_du_plat=nom_du_plat[1].strip()
 
-            if(nom_du_plat==PlatName):
+            if(nom_du_plat.lower()==PlatName):
                 return plat[1]
         return "PAS DE DETAILS RENSEIGNER POUR CE PLAT"
 
 def MenuPrincipal():
 
-    menu_afficher=find_all_data(MENU_PRINCIPAL_DIRECTORY)
-    effacer_ecran()
+    menu_afficher=find_all_data(cst.MENU_PRINCIPAL_DIRECTORY)
+    fct.effacer_ecran()
     i=1
     print('*'*50)
-    print(f"{MENU_PRINCIPAL_DIRECTORY.upper(): ^50}")
+    print(f"{cst.MENU_PRINCIPAL_DIRECTORY.upper(): ^50}")
     print('*'*50)
 
     #AFIN D'EVITER LA REDONDANCE
@@ -201,7 +156,7 @@ def MenuPrincipal():
 
     print(50*"-")
 
-    choix=saisir_entier(1,i,"Faites votre choix :\n")
+    choix=fct.saisir_entier(1,i,"Faites votre choix :\n")
 
     if(choix==i):
 
@@ -226,7 +181,7 @@ def generation_ticket(commandes):
     #Name fichier ticket
     datenow=datetime.now()
     dateticket=datenow.strftime("%d%m%Y%H%M%S")
-    fileticket="ticket/"+dateticket+"txt"
+    fileticket="ticket/"+dateticket+".txt"
 
     #reference bas de page
     dateBas_de_page=datenow.strftime("%d/%m/%Y à %H:%M")
@@ -235,7 +190,7 @@ def generation_ticket(commandes):
     #Corp du ticket
     ecriture=""
     somme=0
-    with open(fileticket,"r",encoding="utf-8") as f:
+    with open(fileticket,"w",encoding="utf-8") as f:
         for commande in commandes:
             ecriture=ecriture + commande["nom"] + '(' + commande["qte"] + ')' +"   "+ commande["prix"]*commande["qte"] +"\n"
             somme+=commande['prix']*commande["qte"]
@@ -249,20 +204,20 @@ def generation_ticket(commandes):
 def uptade_file_vente(commandes):
 
     ecriture=""
-    with open(VENTES_DIRECTORY,"a") as f:
+    with open(cst.VENTES_DIRECTORY,"a") as f:
         for commande in commandes:
             ecriture=ecriture+commande["nom"]+";"+commande["qte"]+";"+commande["prix"]+"\n"
         f.write(ecriture)
 
 def soustraction_qte(commandes):
 
-    with open(MENU_PRINCIPAL_DIRECTORY,'r',encoding="utf-8") as f:
+    with open(cst.MENU_PRINCIPAL_DIRECTORY,'r',encoding="utf-8") as f:
         views=f.read().splitlines()
 
     for view in views:
 
         view=view.lower().replace(" ","_")
-        view=view+"txt"
+        view=view+".txt"
         new_menu=[]
 
 
@@ -282,87 +237,6 @@ def soustraction_qte(commandes):
         with open(view,"w",encoding="utf-8") as f:
             f.write(new_menu)
                     
-#Fonction caisse
-
-def listerVentes():
-    with open(VENTES_DIRECTORY,"r",encoding="utf-8") as f:
-       line=f.readline()
-       while line:
-        print(line)
-        line=f.readlines()   
-
-def MontantVentes():
-    somm=0
-    with open(VENTES_DIRECTORY) as f:
-        ventes=f.read().splitlines()
-        for vente in ventes:
-            vente=vente.split(";")
-            somm+=int(vente[2].strip())*int(vente[1].strip())
-    print(f"la sommes des Ventes d'aujourd'hui vaut {somm}")
-
-#Programme PRINCIPAL caisse
-while True:
-    print("-"*50)
-    entete="menu caise"
-    print(f"{entete: .^50}")
-    i=1
-    action=["Lister la liste des ventes","le montant total des ventes"]
-    for poss in action:
-        print(f"{i} {poss}")
-    choix=saisir_entier(1,i+1,"Faite un choix")
-    if(choix>len(action)):
-        break
-    else:
-
-        if(action[choix]=="Lister la liste des ventes"):
-            listerVentes()
-        elif(action[choix]=="Le montant total des ventes"):
-            MontantVentes()
-
-    if(not yesNoQuestion("Voulez vous retourner au menu Principal ?")):
-        break
-
-
-#Programme principal client
-view=None
-while True:
-
-    if(view==None):
-         PlatName,info,view=render_view((MenuPrincipal()))
-    else:
-         PlatName,info,view=render_view(view)
-
-    if(PlatName==0):
-        #Il a fini il veut sortir  
-        break
-    else:
-        if(yesNoQuestion("Voulez-vous voir les details")):
-            details(PlatName)
-            if(not yesNoQuestion("Voulez-vous commander ?")):
-                continue
-
-        qte_voulue=saisir_entier("entrer le nombre de plat",1,1)
-
-        if(qte_voulue>info["qte"]):
-            print("la quantité demandé est superieur au nombre de plat dispo coreespondent à",info["qte"])
-            if(yesNoQuestion("Vouliez vous changer la qantite voulue")):
-                qte_voulue=saisir_entier("entrer une nouvelle quantite",1,info["qte"])
-        
-        if(not yesNoQuestion("voulez vous un autre",view)):
-            view=None
-        
-        if(qte_voulue<=info["qte"]):
-            commande={"nom":PlatName,"qte":qte_voulue,"prix":info["prix"]}
-            commandes.append(commande)
-
-if(commandes!=[]):
-
-    generation_ticket(commandes)
-    uptade_file_vente(commandes)
-    soustraction_qte(commandes)
-    
-
-
 
 #le renvoyer keleke part d'autre si le menu n'existe pas
 #ProgrammmmmeeeeeeeeeeeeeeeeeeeeeeeeePrinncipppalee
@@ -374,3 +248,5 @@ if(commandes!=[]):
 #     pass
 # else:
 #     menu_afficher=menus[choix_utilisateur-1]
+if __name__=="__main__":
+    render_view("plat du jour")
