@@ -1,8 +1,7 @@
-Fataya: 1000: 12
-Avocado sur galette craquante:2000:14
-Riz poisson fumé: 3000 : 10
-Aubergines façon wok asiatique:2000:14
-Alloco : 1500 :25
+fataya : 1000 : 1
+avocado sur galette craquante : 2000 : 12
+aubergines faã§on wok asiatique : 2000 : 7
+alloco : 1500 : 18
 Karakolo : 100 : 10000
 beinga:1000:19
 YAssa : 2000: 4

@@ -1,15 +1,14 @@
-def saisir_entier(min,max,expression="Faite un choix\n"):
+def formatage_montant(somm):
+   
+    t=[]
+    for x in str(somm):
+        t.append(x)
+    x=len(t)-3
+    while(x>0):
+        t.insert(x,".")
+        x-=3
 
-    choix=input(expression)
-    if choix.isdigit()==True:
-        choix=int(choix)
-    else:
-        print("Votre saisie doit etre un entier")
-        return saisir_entier(min,max,expression)
-    if(min==max and min<choix) or ((choix>=min and choix<=max)):
-        return choix
-    else:
-        print("Votre saisie n'est pas valide")
-        return saisir_entier(min,max,expression)
+    print(t)
+    return "".join(t)
 
-saisir_entier(1,5)
+print(formatage_montant(400000))

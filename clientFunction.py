@@ -19,7 +19,7 @@ def find_all_data(view):
             data=f.read()
             data=data.splitlines()
     else:
-        f=open(nom_du_fichier,"w")
+        f=open(nom_du_fichier,"w",encoding="utf-8")
         data=[]
         f.close
 
@@ -71,6 +71,7 @@ def render_view(view):
             test=prix.replace(",","")
             if(test.isdigit()==False or qte.isdigit()==False):
                 continue
+            
 
             #TRAITEMEN T DU CAS OU LA QTE EST SUPERIEUR AUX PRIX
             #ON SUPPOSE QUE SES UNE 
@@ -78,9 +79,11 @@ def render_view(view):
             # if(int(qte)>int(prix)):
             #     qte,prix=prix,qte
 
+            prix=int(prix)
+            qte=int(qte)
 
             #TRAITEMENT DU CAS OU LA QTE RESTANTE EST EGALE A 0
-            if(qte=='0'):
+            if(qte==0):
                 continue
             else:
 
@@ -136,11 +139,11 @@ def details(PlatName:str)->str:
 
 def MenuPrincipal():
 
-    menu_afficher=find_all_data(cst.MENU_PRINCIPAL_DIRECTORY)
+    menu_afficher=find_all_data(cst.MENU_PRINCIPAL_NAME)
     fct.effacer_ecran()
     i=1
     print('*'*50)
-    print(f"{cst.MENU_PRINCIPAL_DIRECTORY.upper(): ^50}")
+    print(f"{cst.MENU_PRINCIPAL_NAME.upper(): ^50}")
     print('*'*50)
 
     #AFIN D'EVITER LA REDONDANCE
@@ -176,7 +179,7 @@ def MenuPrincipal():
 def generation_ticket(commandes):
 
     #Entete
-    entete=" RESTO DIMENSION ALLOCO "
+    entete=f"{'RESTO DIMENSION ALLOCO':.^40}\n"
 
     #Name fichier ticket
     datenow=datetime.now()
@@ -185,17 +188,17 @@ def generation_ticket(commandes):
 
     #reference bas de page
     dateBas_de_page=datenow.strftime("%d/%m/%Y à %H:%M")
-    bas_de_page="\nImprimé le "+dateBas_de_page+"       "+" merci"
+    bas_de_page="\nImprimé le "+dateBas_de_page+"      "+" MERCI"
 
     #Corp du ticket
     ecriture=""
     somme=0
     with open(fileticket,"w",encoding="utf-8") as f:
         for commande in commandes:
-            ecriture=ecriture + commande["nom"] + '(' + commande["qte"] + ')' +"   "+ commande["prix"]*commande["qte"] +"\n"
+            ecriture=ecriture + "{} ( {} ) {} \n".format(commande["nom"],commande["qte"],commande["prix"]*commande["qte"])
             somme+=commande['prix']*commande["qte"]
 
-        ecriture+=f"TOTAL:   {somme}"
+        ecriture+=f"TOTAL:   {fct.formatage_montant(somme)}{cst.DEVISE}"
         f.write(entete)
         f.write(ecriture)
         f.write(bas_de_page)
@@ -204,49 +207,80 @@ def generation_ticket(commandes):
 def uptade_file_vente(commandes):
 
     ecriture=""
-    with open(cst.VENTES_DIRECTORY,"a") as f:
+    with open(cst.VENTES_DIRECTORY,"a",encoding="utf-8") as f:
         for commande in commandes:
-            ecriture=ecriture+commande["nom"]+";"+commande["qte"]+";"+commande["prix"]+"\n"
+            ecriture=ecriture+"{} ; {} ; {}\n".format(commande["nom"],commande["qte"],commande["prix"])
         f.write(ecriture)
 
 def soustraction_qte(commandes):
 
-    with open(cst.MENU_PRINCIPAL_DIRECTORY,'r',encoding="utf-8") as f:
-        views=f.read().splitlines()
+            CommandesByView={}
+            for commande in commandes:
+                if(commande["view"] not in CommandesByView):
+                    CommandesByView[commande["view"]]=[]
 
-    for view in views:
+                CommandesByView[commande["view"]].append(commande)
 
-        view=view.lower().replace(" ","_")
-        view=view+".txt"
-        new_menu=[]
+            for viewOriginale in CommandesByView:
 
+                view=viewOriginale.replace(" ","_")
+                view=view+".txt"
 
-        with open(view,"r") as f:
-                different_plat=f.read().split("\n")
-                for plat_with_deux_point in different_plat():
-                    plat=plat_with_deux_point.split(":")
-                    for i in range(len(commandes)-1):
+                with open(view,"r",encoding="utf-8") as f:
+                    new_menu=[]
+                    oldmenu=f.read().split("\n")
+                    for platWDP in oldmenu:
+                        plat=platWDP.split(":")
+                        nomPlat=plat[0].strip()
 
-                        if(plat[0].strip()==commandes[i]["nom"]):
-                            newQte=int(plat[3])-int(commandes[i]["qte"])
-                            plat_with_deux_point=f"{plat[0]}:{plat[1]}:{newQte}"
-                            break
+                        for commande in CommandesByView[viewOriginale]:
+                            
+                            if(commande["nom"]==nomPlat.lower()):
+                                platWDP="{} : {} : {}".format(commande["nom"],commande["prix"],int(plat[2].strip())-commande["qte"])
+                                break
 
-                    new_menu.append(plat_with_deux_point)
+                        new_menu.append(platWDP)
 
-        with open(view,"w",encoding="utf-8") as f:
-            f.write(new_menu)
+                with open(view,"w",encoding="utf-8") as f:
+                    for menu in new_menu:
+                        f.write(f"{menu}\n")
+
+# def soustraction_qte(commandes):
+#     views=set()
+#     with open(cst.MENU_PRINCIPAL_DIRECTORY,'r',encoding="utf-8") as f:
+#         test=f.read().splitlines()
+#         for i in test:
+#             views.add(i.lower())
+
+#     for view in views:
+
+#         view=view.replace(" ","_")
+#         view=view+".txt"
+#         new_menu=[]
+
+#         if(exists(view)):
+#             with open(view,"r",encoding="utf-8") as f:
+
+#                     different_plat=f.read().split("\n")
+
+#                     for plat_with_deux_point in different_plat:
+
+#                         plat=plat_with_deux_point.split(":")
+#                         nomplat=plat[0].strip()
+#                         for i in range(len(commandes)):
+#                             print("coucou")
+#                             if(nomplat.lower()==commandes[i]["nom"]):
+
+#                                 newQte=int(plat[3])-int(commandes[i]["qte"])
+#                                 plat_with_deux_point=f"{plat[0]}:{plat[1]}:{newQte}"
+#                                 break
+
+#                         new_menu.append(plat_with_deux_point)
+
+#             with open(view,"w",encoding="utf-8") as f:
+#                 for menu in new_menu:
+#                     f.write(f"{menu}\n")
                     
 
-#le renvoyer keleke part d'autre si le menu n'existe pas
-#ProgrammmmmeeeeeeeeeeeeeeeeeeeeeeeeePrinncipppalee
-
-################ ---Burger-----
-
-# if choix_utilisateur>len(menus)-1:
-#     #sortir du programme
-#     pass
-# else:
-#     menu_afficher=menus[choix_utilisateur-1]
 if __name__=="__main__":
     render_view("plat du jour")

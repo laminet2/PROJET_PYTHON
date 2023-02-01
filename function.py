@@ -22,7 +22,7 @@ def effacer_ecran():
 def creerFichier(nomFichier,ext="txt"):
     fichier=f"{nomFichier}.{ext}"
     if(not exists(fichier)):
-        f=open(fichier,"w")
+        f=open(fichier,"w",encoding="utf-8")
         f.close()
 
 def saisir_entier(min:int,max:int,expression="Faite un choix\n"):
@@ -38,3 +38,16 @@ def saisir_entier(min:int,max:int,expression="Faite un choix\n"):
     else:
         print("Votre saisie n'est pas valide")
         return saisir_entier(min,max,expression)
+
+def formatage_montant(somm):
+   
+    t=[]
+    for x in str(somm):
+        t.append(x)
+    x=len(t)-3
+    while(x>0):
+        t.insert(x,".")
+        x-=3
+
+    print(t)
+    return "".join(t)

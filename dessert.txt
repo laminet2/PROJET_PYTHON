@@ -1,4 +1,3 @@
 Tarte a la pomme:5000:4
-Gateau au chocolat
-Eclair
-Crepe
+
+

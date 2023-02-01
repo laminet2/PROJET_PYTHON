@@ -25,14 +25,15 @@ while True:
         if(qte_voulue>int(info["qte"])):
             print("la quantité demandé est superieur au nombre de plat dispo coreespondent à",info["qte"])
             if(fct.yesNoQuestion("Vouliez vous changer la qantite voulue")):
-                qte_voulue=fct.saisir_entier(1,info["qte"],"entrer une nouvelle quantite")
+                qte_voulue=fct.saisir_entier(1,info["qte"],"entrer une nouvelle quantite\n")
         
+        if(qte_voulue<=int(info["qte"])):
+            commande={"nom":PlatName,"qte":qte_voulue,"prix":info["prix"],"view":view}
+            commandes.append(commande)
+
         if(not fct.yesNoQuestion(f"voulez vous un autre {view}")):
             view=None
         
-        if(qte_voulue<=int(info["qte"])):
-            commande={"nom":PlatName,"qte":qte_voulue,"prix":info["prix"]}
-            commandes.append(commande)
 
 if(commandes!=[]):
 
